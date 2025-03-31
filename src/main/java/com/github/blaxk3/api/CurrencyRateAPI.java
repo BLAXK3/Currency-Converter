@@ -29,7 +29,7 @@ public class CurrencyRateAPI {
 
             int responseCode = request.getResponseCode();
             if (responseCode == HttpURLConnection.HTTP_OK) {
-                JsonElement root = JsonParser.parseReader(new InputStreamReader((InputStream) request.getContent()));;
+                JsonElement root = JsonParser.parseReader(new InputStreamReader((InputStream) request.getContent()));
                 return root.getAsJsonObject();
             } else {
                 logger.error("GET request failed with response code: {}", responseCode);
