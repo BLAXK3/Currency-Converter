@@ -6,20 +6,37 @@ import com.google.gson.JsonParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Properties;
 
 public class CurrencyRateAPI {
 
     private static final Logger logger = LoggerFactory.getLogger(CurrencyRateAPI.class);
-    private static final String APIKey = "";
+
+    public String getApiKeyService() {
+        Properties properties = new Properties();
+        try (InputStream input = getClass().getClassLoader().getResourceAsStream("config.properties")) {
+            if (input == null) {
+                logger.error("Unable to find config.properties");
+                return null;
+            }
+            properties.load(input);
+            return properties.getProperty("API_KEY");
+        } catch (IOException e) {
+            logger.error("Error loading config.properties", e);
+            return null;
+        }
+    }
 
     public String getURL() {
-        return "https://v6.exchangerate-api.com/v6/" + APIKey;
+        return "https://v6.exchangerate-api.com/v6/" + getApiKeyService();
     }
 
     public JsonObject getJsonObject(URL url) {
@@ -52,7 +69,7 @@ public class CurrencyRateAPI {
         return null;
     }
 
-    public String convert(String foreignCurrency1, String foreignCurrency2, double amount) throws MalformedURLException, URISyntaxException {
+    public String convert(String foreignCurrency1, String foreignCurrency2, BigDecimal amount) throws MalformedURLException, URISyntaxException {
         return getJsonObject(new java.net.URI(getURL() + "/pair/" + foreignCurrency1 + "/" + foreignCurrency2 + "/" + amount).toURL()).get("conversion_result").toString();
     }
 }

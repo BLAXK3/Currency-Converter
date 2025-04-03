@@ -9,15 +9,18 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.text.DecimalFormat;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Stream;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JTextField;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.SwingWorker;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
@@ -27,30 +30,36 @@ import javax.swing.text.DocumentFilter;
 public class UI extends javax.swing.JFrame {
 
     private static final Logger logger = LoggerFactory.getLogger(UI.class);
-    private JTextField[] textField;
-    JComboBox<String>[] comboBoxes;
+    private JLabel label;
+    private JTextField textField;
+    private JComboBox < String > comboBox1;
+    private JComboBox < String > comboBox2;
 
-
-    public String[] getComboBox() {
-        return Stream.of(comboBoxes)
-                .map(box -> (String) box.getSelectedItem())
-                .toArray(String[]::new);
+    public JComboBox < String > getComboBox1() {
+        return comboBox1;
     }
 
-
-    public String getTextField() {
-        return textField[0].getText();
+    public JComboBox < String > getComboBox2() {
+        return comboBox2;
     }
 
-
-    public void setTextField(String textField) {
-        this.textField[1].setText(textField);
+    public JTextField getTextField() {
+        return textField;
     }
 
-    public UI () {
+    public void setTextField(String msg) {
+        this.textField.setText(msg);
+    }
+
+    public void setLabel(String textField) {
+        this.label.setText(textField);
+    }
+
+    public UI() {
+        setIconImage(new javax.swing.ImageIcon(Objects.requireNonNull(getClass().getResource("/icon/image/icon.png"))).getImage());
         add(panel());
         setTitle("Currency Converter");
-        setSize(500,500);
+        setSize(500, 500);
         setLayout(new java.awt.GridLayout(1, 2));
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setResizable(false);
@@ -60,23 +69,22 @@ public class UI extends javax.swing.JFrame {
 
     private Component panel() {
         JPanel framePanel = new JPanel();
-        framePanel.setBackground(Color.GRAY);
         framePanel.setLayout(new javax.swing.BoxLayout(framePanel, javax.swing.BoxLayout.Y_AXIS));
-        framePanel.add(new javax.swing.JLabel("Currency Rate = "));
 
         JPanel panelFramePanel1 = new JPanel();
-        panelFramePanel1.setLayout(new FlowLayout(FlowLayout.CENTER));
-        panelFramePanel1.add(textField()[0]);
-        panelFramePanel1.add(comboBox()[0]);
         panelFramePanel1.setBackground(Color.DARK_GRAY);
+        panelFramePanel1.setLayout(new FlowLayout(FlowLayout.CENTER));
+        panelFramePanel1.add(textField());
+        panelFramePanel1.add(comboBox1());
 
         JPanel panelFramePanel2 = new JPanel();
         panelFramePanel2.setLayout(new FlowLayout(FlowLayout.CENTER));
-        panelFramePanel2.add(textField()[1]);
-        panelFramePanel2.add(comboBox()[1]);
+        panelFramePanel2.add(label());
+        panelFramePanel2.add(comboBox2());
         panelFramePanel2.setBackground(Color.DARK_GRAY);
         panelFramePanel2.add(button()[0]);
         panelFramePanel2.add(button()[1]);
+        panelFramePanel2.add(button()[2]);
 
         framePanel.add(panelFramePanel1);
         framePanel.add(panelFramePanel2);
@@ -84,67 +92,79 @@ public class UI extends javax.swing.JFrame {
         return framePanel;
     }
 
-    private Component[] comboBox() {
-        comboBoxes = new JComboBox[]{
-                new JComboBox<>(),
-                new JComboBox<>()
-        };
+    private Component comboBox1() {
+        comboBox1 = new JComboBox < > ();
+        comboBox1.setPreferredSize(new Dimension(300, 30));
+        new CurrencyCode(comboBox1).execute();
 
-        for (JComboBox<String> comboBox : comboBoxes) {
-            comboBox.setPreferredSize(new Dimension(300, 30));
-            new CurrencyCode(comboBox).execute();
-        }
+        return comboBox1;
+    }
 
-        return comboBoxes;
+    private Component comboBox2() {
+        comboBox2 = new JComboBox < > ();
+        comboBox2.setPreferredSize(new Dimension(300, 30));
+        new CurrencyCode(comboBox2).execute();
+
+        return comboBox2;
     }
 
     private Component[] button() {
         JButton[] button = new JButton[] {
                 new JButton("Convert"),
-                new JButton("Swap")
+                new JButton("Swap"),
+                new JButton("Clear")
         };
 
-        for (JButton buttons : button) {
+        for (JButton buttons: button) {
             buttons.setPreferredSize(new Dimension(200, 35));
-            buttons.addActionListener(e -> {
-                try {
-                    String input = getTextField();
-                    System.out.println(getComboBox()[0]);
-                    System.out.println(getComboBox()[1]);
-
-                    if (input.isEmpty()) {
-                        setTextField("0");
-                        input = "0";
-                    }
-
-                    setTextField(new CurrencyRateAPI().convert(getComboBox()[0], getComboBox()[1], 120));
-                } catch (MalformedURLException | URISyntaxException ex) {
-                    logger.error("Error occurred during currency conversion", ex);
-                }
-            });
-
         }
+
+        CurrencyRateAPI rate = new CurrencyRateAPI();
+        button[0].addActionListener(convert -> {
+        try {
+            if (!getTextField().getText().isEmpty() && !getTextField().getText().equals(".")){
+                setLabel(new DecimalFormat("#,###.###").format((Number) Double.parseDouble(rate.convert(Objects.requireNonNull(getComboBox1().getSelectedItem()).toString(), Objects.requireNonNull(getComboBox2().getSelectedItem()).toString(), BigDecimal.valueOf(Double.parseDouble(textField.getText()))))));
+            } else {
+                javax.swing.JOptionPane.showMessageDialog(null, "Please enter the amount you need", "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (MalformedURLException | URISyntaxException ex) {
+            throw new RuntimeException(ex);
+        }
+        });
+
+        button[1].addActionListener(swap -> {
+                String boxItem = Objects.requireNonNull(getComboBox1().getSelectedItem()).toString();
+        getComboBox1().setSelectedItem(getComboBox2().getSelectedItem());
+        getComboBox2().setSelectedItem(boxItem);
+        });
+
+        button[2].addActionListener(clear -> {
+                setTextField("");
+        setLabel("");
+        });
 
         return button;
     }
 
-    private Component[] textField() {
-        textField = new JTextField[] {
-                new JTextField(),
-                new JTextField()
-        };
-
-        textField[1].setEditable(false);
-        for (JTextField textFields : textField) {
-            textFields.setFont(new Font("Arial", Font.BOLD, 24));
-            textFields.setPreferredSize(new Dimension(300, 100));
-            ((javax.swing.text.PlainDocument) textFields.getDocument()).setDocumentFilter(new NumericFilter());
-        }
+    private Component textField() {
+        textField = new JTextField();
+        textField.setFont(new Font("Arial", Font.BOLD, 24));
+        textField.setPreferredSize(new Dimension(300, 100));
+        ((javax.swing.text.PlainDocument) textField.getDocument()).setDocumentFilter(new NumericFilter());
 
         return textField;
     }
 
-    private static class NumericFilter extends DocumentFilter {
+    private Component label() {
+        label = new JLabel();
+        label.setFont(new Font("Arial", Font.BOLD, 24));
+        label.setPreferredSize(new Dimension(300, 100));
+        label.setOpaque(true);
+        label.setBackground(Color.WHITE);
+        return label;
+    }
+
+    public static class NumericFilter extends DocumentFilter {
 
         @Override
         public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
@@ -191,15 +211,16 @@ public class UI extends javax.swing.JFrame {
         }
     }
 
-    public static class CurrencyCode extends SwingWorker<String[], Void> {
-        private final JComboBox<String> comboBox;
+    public static class CurrencyCode extends SwingWorker < String[], Void > {
+        private final JComboBox < String > comboBox;
 
-        public CurrencyCode(JComboBox<String> comboBox) {
+        public CurrencyCode(JComboBox < String > comboBox) {
             this.comboBox = comboBox;
         }
 
         @Override
-        protected String[] doInBackground() throws MalformedURLException, URISyntaxException {
+        protected String[] doInBackground() throws MalformedURLException,
+                URISyntaxException {
             return new CurrencyRateAPI().getCurrencyCode();
         }
 
