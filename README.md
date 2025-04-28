@@ -3,7 +3,7 @@
 
 ## Overview
 
-This is a currency converter application that allows users to convert between different currencies. It fetches live exchange rates and performs conversions based on the selected currencies
+This is a currency converter that allows users to convert between different currencies. It fetches live exchange rates and performs conversions based on the selected currencies
 using rate data from [ExchangeRate-API](https://www.exchangerate-api.com)
 
 โปรแกรมสำหรับการแปลงสกุลเงินต่างประเทศด้วยการดีไซน์ระบบตำบลอย่างมินิมอล :> 
